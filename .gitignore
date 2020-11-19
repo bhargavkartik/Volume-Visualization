@@ -1,3 +1,5 @@
 build/
 *.jar
 *.class
+/VolVis/dist/
+*.properties
