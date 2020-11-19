@@ -178,7 +178,54 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     private short getVoxelTrilinear(double[] coord) {
         // TODO 1: Implement Tri-Linear interpolation and use it in your code
         // instead of getVoxel().
-        return 0;
+        
+        // Each of the coordinate can take values only between
+        // 0 and (max_value - 1)
+        if (coord[0] < 0 || coord[0] > volume.getDimX() - 1 ||
+            coord[1] < 0 || coord[1] > volume.getDimY() - 1 ||
+            coord[2] < 0 || coord[2] > volume.getDimZ() - 1)
+        {
+            return 0;
+        }
+        
+        // Further code is implemented by referring to the following article
+        // https://en.wikipedia.org/wiki/Trilinear_interpolation
+        
+        //Calculate x0, y0, z0 and x1, y1, z1
+        int x0 = (int) Math.floor(coord[0]);
+        int y0 = (int) Math.floor(coord[1]);
+        int z0 = (int) Math.floor(coord[2]);
+        
+        int x1 = (int) Math.ceil(coord[0]);
+        int y1 = (int) Math.ceil(coord[1]);
+        int z1 = (int) Math.ceil(coord[2]);
+        
+        //Calculating the co-efficients : alpha, beta and gamma
+        double alpha = (coord[0] - x0) / (x1 - x0);
+        double beta = (coord[1] - y0) / (y1 - y0);
+        double gamma = (coord[2] - z0) / (z1 - z0);
+        
+        double c000 = volume.getVoxel(x0, y0, z0); // [0,0,0]
+        double c001 = volume.getVoxel(x0, y0, z1); // [0,0,1]
+        double c010 = volume.getVoxel(x0, y1, z0); // [0,1,0]
+        double c011 = volume.getVoxel(x0, y1, z1); // [0,1,1]
+        double c100 = volume.getVoxel(x1, y0, z0); // [1,0,0]
+        double c101 = volume.getVoxel(x1, y0, z1); // [1,0,1]
+        double c110 = volume.getVoxel(x1, y1, z0); // [1,1,0]
+        double c111 = volume.getVoxel(x1, y1, z1); // [1,1,1]
+        
+        // Final computation of Tri-Linear Interpolation
+        short interpolated_result = (short) Math.round(
+                (1 - alpha) * (1 - beta) * (1 - gamma) * c000 +
+                alpha * (1 - beta) * (1 - gamma) * c100 +
+                (1 - alpha) * beta * (1 - gamma) * c010 +
+                alpha * beta * (1 - gamma) * c110 +
+                (1 - alpha) * (1 - beta) * gamma * c001 +
+                alpha * (1 - beta) * gamma * c101 + 
+                (1 - alpha) * beta * gamma * c011 + 
+                alpha * beta * gamma * c111);
+        
+        return interpolated_result;
     }
 
     /**
