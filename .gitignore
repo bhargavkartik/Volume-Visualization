@@ -3,3 +3,4 @@ build/
 *.class
 /VolVis/dist/
 *.properties
+/VolVis/nbproject/private/
