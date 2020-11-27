@@ -262,9 +262,74 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
      * @param coord Pixel coordinate in 3D space of the voxel we want to get.
      * @return The voxel gradient.
      */
-    private VoxelGradient getGradientTrilinear(double[] coord) {
+    private VoxelGradient getGradientTrilinear(double[] coord) 
+    {
         // TODO 6: Implement Tri-linear interpolation for gradients
-        return ZERO_GRADIENT;
+        
+        // Get the coordinates
+        double dx = coord[0], dy = coord[1], dz = coord[2];
+
+        // Verify they are inside the volume gradient
+        if (dx < 0 || dx > (gradients.getDimX() - 2) ||
+            dy < 0 || dy > (gradients.getDimY() - 2) ||
+            dz < 0 || dz > (gradients.getDimZ() - 2))
+        {
+            // If not, just return a zero gradient
+            return ZERO_GRADIENT;
+        }
+        
+        //Calculate x0, y0, z0 and x1, y1, z1
+        int x0 = (int) Math.floor(dx);
+        int y0 = (int) Math.floor(dy);
+        int z0 = (int) Math.floor(dz);
+        
+        int x1 = (int) Math.ceil(dx);
+        int y1 = (int) Math.ceil(dy);
+        int z1 = (int) Math.ceil(dz);
+        
+        //Calculating the co-efficients : alpha, beta and gamma
+        float alpha = (float)(dx - x0) / (x1 - x0);
+        float beta = (float)(dy - y0) / (y1 - y0);
+        float gamma = (float)(dz - z0) / (z1 - z0);
+        
+        // Computing the tri-linear interpolation of the X-component of the Gradient
+        float gradientX = 
+                (1 - alpha) * (1 - beta) * (1 - gamma) * gradients.getGradient(x0, y0, z0).x +
+                alpha * (1 - beta) * (1 - gamma) * gradients.getGradient(x1, y0, z0).x +
+                (1 - alpha) * beta * (1 - gamma) * gradients.getGradient(x0, y1, z0).x +
+                alpha * beta * (1 - gamma) * gradients.getGradient(x1, y1, z0).x +
+                (1 - alpha) * (1 - beta) * gamma * gradients.getGradient(x0, y0, z1).x +
+                alpha * (1 - beta) * gamma * gradients.getGradient(x1, y0, z1).x + 
+                (1 - alpha) * beta * gamma * gradients.getGradient(x0, y1, z1).x + 
+                alpha * beta * gamma * gradients.getGradient(x1, y1, z1).x;
+        
+        // Computing the tri-linear interpolation of the Y-component of the Gradient
+        float gradientY = 
+                (1 - alpha) * (1 - beta) * (1 - gamma) * gradients.getGradient(x0, y0, z0).y +
+                alpha * (1 - beta) * (1 - gamma) * gradients.getGradient(x1, y0, z0).y +
+                (1 - alpha) * beta * (1 - gamma) * gradients.getGradient(x0, y1, z0).y +
+                alpha * beta * (1 - gamma) * gradients.getGradient(x1, y1, z0).y +
+                (1 - alpha) * (1 - beta) * gamma * gradients.getGradient(x0, y0, z1).y +
+                alpha * (1 - beta) * gamma * gradients.getGradient(x1, y0, z1).y + 
+                (1 - alpha) * beta * gamma * gradients.getGradient(x0, y1, z1).y + 
+                alpha * beta * gamma * gradients.getGradient(x1, y1, z1).y;
+        
+        // Computing the tri-linear interpolation of the Z-component of the Gradient
+        float gradientZ = 
+                (1 - alpha) * (1 - beta) * (1 - gamma) * gradients.getGradient(x0, y0, z0).z +
+                alpha * (1 - beta) * (1 - gamma) * gradients.getGradient(x1, y0, z0).z +
+                (1 - alpha) * beta * (1 - gamma) * gradients.getGradient(x0, y1, z0).z +
+                alpha * beta * (1 - gamma) * gradients.getGradient(x1, y1, z0).z +
+                (1 - alpha) * (1 - beta) * gamma * gradients.getGradient(x0, y0, z1).z +
+                alpha * (1 - beta) * gamma * gradients.getGradient(x1, y0, z1).z + 
+                (1 - alpha) * beta * gamma * gradients.getGradient(x0, y1, z1).z + 
+                alpha * beta * gamma * gradients.getGradient(x1, y1, z1).z;
+        
+        VoxelGradient resultantGradient = new VoxelGradient(gradientX,
+                                                            gradientY,
+                                                            gradientZ);
+        
+        return resultantGradient;
     }
 
     /**
