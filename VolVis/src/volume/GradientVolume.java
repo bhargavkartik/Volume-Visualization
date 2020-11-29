@@ -52,14 +52,34 @@ public class GradientVolume {
      * Computes the gradient information of the volume according to Levoy's
      * paper.
      */
-    private void compute() {
+    private void compute() 
+    {
+
+        for (int i=0; i<data.length; i++) {
+            data[i] = zero;
+        }
+       
+        for (int z=1; z<dimZ-1; z++) {
+            for (int y=1; y<dimY-1; y++) {
+                for (int x=1; x<dimX-1; x++) {
+                    float x0 = (volume.getVoxel(x+1, y, z) - volume.getVoxel(x-1, y, z))/2.0f;
+                    float y0 = (volume.getVoxel(x, y+1, z) - volume.getVoxel(x, y-1, z))/2.0f;
+                    float z0 = (volume.getVoxel(x, y, z+1) - volume.getVoxel(x, y, z-1))/2.0f;
+                    VoxelGradient newvalue = new VoxelGradient(x0, y0, z0);
+                    setGradient(x, y, z, newvalue);
+                }
+            }
+        }
+     
+     }
+    /*{
         // TODO 4: Implement gradient computation.
         // this just initializes all gradients to the vector (0,0,0)
         for (int i = 0; i < data.length; i++) {
             data[i] = zero;
         }
 
-    }
+    }*/
 
     public double getMaxGradientMagnitude() {
         if (maxmag >= 0) {
