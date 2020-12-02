@@ -720,6 +720,32 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         double opacity = 0.0;
 
         // TODO 8: Implement weight based opacity.
+        
+        TFColor baseColor=tFunc2DFront.color;
+
+        // define components to be used
+        // compute the material angle and voxel angle
+        double maxGrad = gradients.getMaxGradientMagnitude();
+        double angle = Math.atan(material_r/maxGrad);
+        double opposite = Math.abs(voxelValue - material_value);
+        double adjacent = gradMagnitude;
+        double voxelAngle = Math.atan(opposite/adjacent);
+
+        // if the material equals the voxel and the gradient is zero, use basic opacity
+        // else if the voxel angle is smaller, use another strategy
+        if(material_value == voxelValue && gradMagnitude == 0)
+        {
+            opacity=baseColor.a;
+        }
+        else if(voxelAngle<angle)
+        {
+            opacity=baseColor.a*((voxelAngle/angle));
+        }
+        else
+        {
+            opacity=0.0;
+        }
+        
         return opacity;
     }
 
