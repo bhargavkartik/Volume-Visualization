@@ -492,7 +492,48 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         double[] currentPos = new double[3];
         VectorMath.setVector(currentPos, entryPoint[0], entryPoint[1], entryPoint[2]);
 
+        //Now we calculate the increase in samples
+        double[] increment = new double[3];
+        VectorMath.setVector(increment, rayVector[0] * sampleStep, rayVector[1] * sampleStep, rayVector[2] * sampleStep);
+
+        // Compute the number of times we need to sample
+        double distance = VectorMath.distance(entryPoint, exitPoint);
+        int nrSamples = 1 + (int) Math.floor(VectorMath.distance(entryPoint, exitPoint) / sampleStep);
+
+        //the current position is initialized as the entry point
+        double[] currentPos = new double[3];
+        VectorMath.setVector(currentPos, entryPoint[0], entryPoint[1], entryPoint[2]);
+
         // isoColorFront contains the isosurface color from the GUI
+        do {
+            // System.out.println("Inside DO loop");
+            int value = getVoxelTrilinear(currentPos);
+
+            if (value > isoValueFront) {
+                r = isoColorFront.r;
+                g = isoColorFront.g;
+                b = isoColorFront.b;
+                alpha = 1.0;
+
+            if (shadingMode)
+              {
+                TFColor d = new TFColor(r,g,b,alpha);
+                VoxelGradient gradient = getGradientTrilinear(currentPos);
+                TFColor new_color =  computePhongShading(d,gradient , lightVector, rayVector);
+                r = new_color.r;
+                g = new_color.g;
+                b = new_color.b;
+              }
+            }
+
+            for (int j = 0; j < 3; j++) {
+                currentPos[j] += increment[j];
+            }
+
+           nrSamples--;
+        } while (nrSamples > 0);
+
+
         do {
             // System.out.println("Inside DO loop");
             int value = getVoxelTrilinear(currentPos);
@@ -525,7 +566,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         //computes the color
         int color = computePackedPixelColor(r, g, b, alpha);
         return color;
-    }
+}
 
     /**
      *
@@ -584,7 +625,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                 do {
                     int val = getVoxelTrilinear(currentPos);
                     colorAux = tFuncFront.getColor(val);
-                    alpha = colorAux.a;                       
+                    alpha = colorAux.a;
 
                     opacity = (1 - alpha) * opacity + alpha;
                     voxel_color.r = (1 - alpha) * voxel_color.r + alpha * colorAux.r;
@@ -605,13 +646,13 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                 voxel_color.b = 0;
                 voxel_color.a = 1;
                 opacity = 1;
-//?????????????????????????????????????????????????????????????????????????????????????     
+//?????????????????????????????????????????????????????????????????????????????????????
 //                VoxelGradient grad;
 //                do {
 //                colorAux.r = tFunc2DFront.color.r;
-//                colorAux.g = tFunc2DFront.color.g; 
-//                colorAux.b = tFunc2DFront.color.b; 
-//                alpha = tFunc2DFront.color.a; 
+//                colorAux.g = tFunc2DFront.color.g;
+//                colorAux.b = tFunc2DFront.color.b;
+//                alpha = tFunc2DFront.color.a;
 
 //                grad = getGradientTrilinear(currentPos);  //grad.mag -- magnitute of the voxel's gradient
 //                intensity???
@@ -739,11 +780,11 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                 computeEntryAndExit(pixelCoord, rayVector, entryPoint, exitPoint);
 
                 // TODO 9: Implement logic for cutting plane.
-                
+
                 double[] diffVec = new double[3];
                 double dot = util.VectorMath.dotproduct(util.VectorMath.difference(entryPoint, planePoint, diffVec), planeNorm);
                 //System.out.println(dot);
-                
+
                 if ((entryPoint[0] > -1.0) && (exitPoint[0] > -1.0)) {
                     int val = 0;
                     if (dot > 0) {
