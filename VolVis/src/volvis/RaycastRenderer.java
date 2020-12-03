@@ -560,26 +560,31 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
 
         // TODO 2: To be Implemented this function. Now, it just gives back a constant color depending on the mode
         //////////////////////////////////////////////////////////////////////////////////////////////////////////
+        //compute the increment and the number of samples (inverse: back-to-front)
+        double[] increments = new double[3];
+        VectorMath.setVector(increments, -rayVector[0] * sampleStep, -rayVector[1] * sampleStep, -rayVector[2] * sampleStep);
+
+        // Compute the number of times we need to sample
+        double distance = VectorMath.distance(entryPoint, exitPoint);
+        int nrSamples = 1 + (int) Math.floor(distance / sampleStep);
+
+        //the current position is initialized as the EXIT point
+        double[] currentPos = new double[3];
+        VectorMath.setVector(currentPos, exitPoint[0], exitPoint[1], exitPoint[2]);
+
         switch (modeFront) {
             case COMPOSITING:
                 // 1D transfer function
-
-                //compute the increment and the number of samples (inverse: back-to-front)
-                double[] increments = new double[3];
-                VectorMath.setVector(increments, -rayVector[0] * sampleStep, -rayVector[1] * sampleStep, -rayVector[2] * sampleStep);
-
-                // Compute the number of times we need to sample
-                double distance = VectorMath.distance(entryPoint, exitPoint);
-                int nrSamples = 1 + (int) Math.floor(distance / sampleStep);
-
-                //the current position is initialized as the EXIT point
-                double[] currentPos = new double[3];
-                VectorMath.setVector(currentPos, exitPoint[0], exitPoint[1], exitPoint[2]);
-
+//                voxel_color.a = opacity;
+//                voxel_color.r = 1;
+//                voxel_color.g = 0;
+//                voxel_color.b = 0;
+//                voxel_color.a = 1;
+//                opacity = 1;
                 do {
                     int val = getVoxelTrilinear(currentPos);
                     colorAux = tFuncFront.getColor(val);
-                    alpha = colorAux.a;
+                    alpha = colorAux.a;                       
 
                     opacity = (1 - alpha) * opacity + alpha;
                     voxel_color.r = (1 - alpha) * voxel_color.r + alpha * colorAux.r;
@@ -591,13 +596,8 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                     }
                     nrSamples--;
                 } while (nrSamples > 0);
-//                voxel_color.a = opacity;
-//                voxel_color.r = 1;
-//                voxel_color.g = 0;
-//                voxel_color.b = 0;
-//                voxel_color.a = 1;
-//                opacity = 1;
                 break;
+
             case TRANSFER2D:
                 // 2D transfer function 
                 voxel_color.r = 0;
@@ -605,6 +605,29 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                 voxel_color.b = 0;
                 voxel_color.a = 1;
                 opacity = 1;
+//?????????????????????????????????????????????????????????????????????????????????????     
+//                VoxelGradient grad;
+//                do {
+//                colorAux.r = tFunc2DFront.color.r;
+//                colorAux.g = tFunc2DFront.color.g; 
+//                colorAux.b = tFunc2DFront.color.b; 
+//                alpha = tFunc2DFront.color.a; 
+
+//                grad = getGradientTrilinear(currentPos);  //grad.mag -- magnitute of the voxel's gradient
+//                intensity???
+//                  if (grad, intencity) inside trianfle from GUI...
+
+//
+//                    opacity = (1 - alpha) * opacity + alpha;
+//                    voxel_color.r = (1 - alpha) * voxel_color.r + alpha * colorAux.r;
+//                    voxel_color.g = (1 - alpha) * voxel_color.g + alpha * colorAux.g;
+//                    voxel_color.b = (1 - alpha) * voxel_color.b + alpha * colorAux.b;
+//
+//                    for (int i = 0; i < 3; i++) {
+//                        currentPos[i] += increments[i];
+//                    }
+//                    nrSamples--;
+//                } while (nrSamples > 0);
                 break;
         }
 
