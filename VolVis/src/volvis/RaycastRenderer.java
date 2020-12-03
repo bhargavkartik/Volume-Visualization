@@ -464,13 +464,15 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
      * @param sampleStep Sample step of the ray.
      * @return Color assigned to a ray/pixel.
      */
-    private int traceRayIso(double[] entryPoint, double[] exitPoint, double[] rayVector, double sampleStep) {
+    private int traceRayIso(double[] entryPoint, double[] exitPoint, double[] rayVector, double sampleStep)
+    {
 
         double[] lightVector = new double[3];
         //We define the light vector as directed toward the view point (which is the source of the light)
         // another light vector would be possible
+        //System.out.println("RayVector" + rayVector[0]+ rayVector[1]+rayVector[2]);
         VectorMath.setVector(lightVector, rayVector[0], rayVector[1], rayVector[2]);
-
+        
         // TODO 3: Implement isosurface rendering.
         //Initialization of the colors as floating point values
         double r, g, b;
@@ -478,15 +480,52 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         double alpha = 0.0;
         double opacity = 0;
 
+        //Now we calculate the increase in samples
+        double[] increment = new double[3];
+        VectorMath.setVector(increment, rayVector[0] * sampleStep, rayVector[1] * sampleStep, rayVector[2] * sampleStep);
+                
+        // Compute the number of times we need to sample
+        double distance = VectorMath.distance(entryPoint, exitPoint);
+        int nrSamples = 1 + (int) Math.floor(VectorMath.distance(entryPoint, exitPoint) / sampleStep);
+                
+        //the current position is initialized as the entry point
+        double[] currentPos = new double[3];
+        VectorMath.setVector(currentPos, entryPoint[0], entryPoint[1], entryPoint[2]);
+                
         // isoColorFront contains the isosurface color from the GUI
-        r = isoColorFront.r;
-        g = isoColorFront.g;
-        b = isoColorFront.b;
-        alpha = 1.0;
+        do {
+            // System.out.println("Inside DO loop");
+            int value = getVoxelTrilinear(currentPos);
+                    
+            if (value > isoValueFront) {    
+                r = isoColorFront.r;
+                g = isoColorFront.g;
+                b = isoColorFront.b;
+                alpha = 1.0;
+          
+            if (shadingMode) 
+              {
+                TFColor d = new TFColor(r,g,b,alpha);
+                VoxelGradient gradient = getGradientTrilinear(currentPos);
+                TFColor new_color =  computePhongShading(d,gradient , lightVector, rayVector);
+                r = new_color.r;
+                g = new_color.g;
+                b = new_color.b;
+              } 
+            }
+          
+            for (int j = 0; j < 3; j++) {
+                currentPos[j] += increment[j];
+            }
+           
+           nrSamples--;
+        } while (nrSamples > 0);
+      
+        
         //computes the color
         int color = computePackedPixelColor(r, g, b, alpha);
         return color;
-    }
+}
 
     /**
      *
