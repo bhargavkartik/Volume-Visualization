@@ -201,9 +201,9 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         int z1 = (int) Math.ceil(coord[2]);
         
         //Calculating the co-efficients : alpha, beta and gamma
-        double alpha = (coord[0] - x0) / (x1 - x0);
-        double beta = (coord[1] - y0) / (y1 - y0);
-        double gamma = (coord[2] - z0) / (z1 - z0);
+        double alpha = (coord[0] - x0); // (x1 - x0);
+        double beta = (coord[1] - y0); // (y1 - y0);
+        double gamma = (coord[2] - z0); // (z1 - z0);
         
         double c000 = volume.getVoxel(x0, y0, z0); // [0,0,0]
         double c001 = volume.getVoxel(x0, y0, z1); // [0,0,1]
@@ -215,17 +215,25 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         double c111 = volume.getVoxel(x1, y1, z1); // [1,1,1]
         
         // Final computation of Tri-Linear Interpolation
-        short interpolated_result = (short) Math.round(
-                (1 - alpha) * (1 - beta) * (1 - gamma) * c000 +
-                alpha * (1 - beta) * (1 - gamma) * c100 +
-                (1 - alpha) * beta * (1 - gamma) * c010 +
-                alpha * beta * (1 - gamma) * c110 +
-                (1 - alpha) * (1 - beta) * gamma * c001 +
-                alpha * (1 - beta) * gamma * c101 + 
-                (1 - alpha) * beta * gamma * c011 + 
-                alpha * beta * gamma * c111);
+//        short interpolated_result = (short) Math.round(
+//                (1 - alpha) * (1 - beta) * (1 - gamma) * c000 +
+//                alpha * (1 - beta) * (1 - gamma) * c100 +
+//                (1 - alpha) * beta * (1 - gamma) * c010 +
+//                alpha * beta * (1 - gamma) * c110 +
+//                (1 - alpha) * (1 - beta) * gamma * c001 +
+//                alpha * (1 - beta) * gamma * c101 + 
+//                (1 - alpha) * beta * gamma * c011 + 
+//                alpha * beta * gamma * c111);
+
+        double c0 = (1 - alpha) * volume.getVoxel(x0, y0, z0) + volume.getVoxel(x0 + 1, y0, z0) * alpha;
+        double c1 = (1 - alpha) * volume.getVoxel(x0, y0 + 1, z0) + volume.getVoxel(x0 + 1, y0 + 1, z0) * alpha;
+        double c2 = (1 - alpha) * volume.getVoxel(x0, y0, z0 + 1) + volume.getVoxel(x0 + 1, y0, z0 + 1) * alpha;
+        double c3 = (1 - alpha) * volume.getVoxel(x0, y0+1, z0 + 1) + volume.getVoxel(x0 + 1, y0 + 1, z0 + 1) * alpha;
+        double c4 = (1 - beta) * c0 + c1 * beta;
+        double c5 = (1 - beta) * c2 + c3 * beta;
+        double c6 = (1 - gamma) * c4 + c5 * gamma;
         
-        return interpolated_result;
+        return (short)c6;
     }
 
     /**
@@ -288,9 +296,9 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         int z1 = (int) Math.ceil(dz);
         
         //Calculating the co-efficients : alpha, beta and gamma
-        float alpha = (float)(dx - x0) / (x1 - x0);
-        float beta = (float)(dy - y0) / (y1 - y0);
-        float gamma = (float)(dz - z0) / (z1 - z0);
+        float alpha = (float)(dx - x0); // (x1 - x0);
+        float beta = (float)(dy - y0); // (y1 - y0);
+        float gamma = (float)(dz - z0); // (z1 - z0);
         
         // Computing the tri-linear interpolation of the X-component of the Gradient
         float gradientX = 
