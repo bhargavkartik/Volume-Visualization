@@ -390,7 +390,7 @@ public class RaycastRendererPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_cuttingPlaneCheckboxActionPerformed
 
     private void IsovalueTextBox1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_IsovalueTextBox1ActionPerformed
-        String s = this.IsovalueTextBox.getText();
+        String s = this.IsovalueTextBox1.getText();
         renderer.setIsoValueBack(Float.parseFloat(s));//set value
         renderer.changed();
     }//GEN-LAST:event_IsovalueTextBox1ActionPerformed
