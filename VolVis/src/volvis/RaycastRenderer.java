@@ -543,20 +543,19 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         //the current position is initialized as the entry point
         double[] currentPos = new double[3];
         VectorMath.setVector(currentPos, exitPoint[0], exitPoint[1], exitPoint[2]);
-                
-        // isoColorFront contains the isosurface color from the GUI
+        
+        // Extract isoValue and color
+        float isoValue = getIsoValue(frontBool);
+        TFColor isoColor = getIsoColor(frontBool);
+        
         do {
-            // System.out.println("Inside DO loop");
             int value = getVoxelTrilinear(currentPos);
-            
-            float isoValue = getIsoValue(frontBool);
-            TFColor isoColor = getIsoColor(frontBool);
 
             if (value > isoValue) {    
                 r = isoColor.r;
                 g = isoColor.g;
                 b = isoColor.b;
-                alpha = getIsoValue(frontBool);
+                alpha = isoColor.a;
           
             if (shadingMode) 
               {
@@ -566,8 +565,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                 r = new_color.r;
                 g = new_color.g;
                 b = new_color.b;
-                //alpha = 0.5;
-                //a = computeOpacity2DTF(distance, alpha, distance, distance)
+                alpha = new_color.a;
               }
             }
           
@@ -609,12 +607,6 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         // creating and initializing the view vector
         double[] viewVector = new double[3];
         VectorMath.setVector(viewVector, -rayVector[0], -rayVector[1], -rayVector[2]);
-
-        //Initialization of the colors as floating point values
-//        double r, g, b;
-//        r = g = b = 0.0;
-//        double alpha = 0.0;
-//        double opacity = 0;
 
         TFColor voxelColor = new TFColor();
         TFColor currentColor = new TFColor();
@@ -666,27 +658,26 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                 voxelColor.b = currentColor.b;
                 
                 // calling the compueOpacity2DTF function
-                voxelColor.a = currTFunc2D.color.a * computeOpacity2DTF(currTFunc2D.baseIntensity, 
+                voxelColor.a = currentColor.a * computeOpacity2DTF(currTFunc2D.baseIntensity, 
                                                   currTFunc2D.radius,
                                                   voxelValue,
                                                   gradient.mag);
                 
             }
 
-//            // If Phong Shading enabled
-//            if (shadingMode)
-//            {
-//                // Shading mode on
-//                //calculate the color and opacity after the application of phong shading
-//                currentColor = computePhongShading(voxelColor, gradient, lightVector, viewVector);
-//
-//                //assign the color to our variable newColor
-//                voxelColor.r = currentColor.r;
-//                voxelColor.g = currentColor.g;
-//                voxelColor.b = currentColor.b;
-//                voxelColor.a = currentColor.a;
-//                alpha = voxelColor.a;
-//            }
+            // If Phong Shading enabled
+            if (shadingMode)
+            {
+                // Shading mode on
+                //calculate the color and opacity after the application of phong shading
+                currentColor = computePhongShading(voxelColor, gradient, lightVector, rayVector);
+
+                //assign the color to our variable newColor
+                voxelColor.r = currentColor.r;
+                voxelColor.g = currentColor.g;
+                voxelColor.b = currentColor.b;
+                voxelColor.a = currentColor.a;
+            }
 
             colorAux = compositingFromBackToFront(colorAux, voxelColor);
 
@@ -698,10 +689,6 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
             nrSamples--;
         } while (nrSamples > 0);
 
-//        if (currMode == RaycastMode.TRANSFER2D) {
-//            //System.out.println(colorAux.a); // almost always 0.0
-//            colorAux.a = 1.0;
-//        }
         //computes the color
         int color = computePackedPixelColor(colorAux.r, colorAux.g, 
                                             colorAux.b, colorAux.a);
@@ -817,7 +804,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
 //        double b = ka * voxel_color.b +
 //                   lightProperty_d[2] * kd * cos1 +
 //                   lightProperty_s[2] * ks * Math.pow(cos2, alpha);
-//
+
 //        double r = lightProperty_a[0] * ka +
 //                   kd * voxel_color.r * cos1 +
 //                   ks * voxel_color.r * Math.pow(cos2, alpha);
