@@ -534,7 +534,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
 
         //Now we calculate the increase in samples
         double[] increment = new double[3];
-        VectorMath.setVector(increment, rayVector[0] * sampleStep, rayVector[1] * sampleStep, rayVector[2] * sampleStep);
+        VectorMath.setVector(increment, - rayVector[0] * sampleStep, - rayVector[1] * sampleStep, - rayVector[2] * sampleStep);
                 
         // Compute the number of times we need to sample
         double distance = VectorMath.distance(entryPoint, exitPoint);
@@ -542,7 +542,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                 
         //the current position is initialized as the entry point
         double[] currentPos = new double[3];
-        VectorMath.setVector(currentPos, entryPoint[0], entryPoint[1], entryPoint[2]);
+        VectorMath.setVector(currentPos, exitPoint[0], exitPoint[1], exitPoint[2]);
                 
         // isoColorFront contains the isosurface color from the GUI
         do {
@@ -808,6 +808,26 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                    lightProperty_d[2] * kd * voxel_color.b * cos1 +
                    lightProperty_s[2] * ks * voxel_color.b * Math.pow(cos2, alpha);
 
+//        double r = ka * voxel_color.r +
+//                   lightProperty_d[0] * kd * cos1 +
+//                   lightProperty_s[0] * ks * Math.pow(cos2, alpha);
+//        double g = ka * voxel_color.g +
+//                   lightProperty_d[1] * kd * cos1 +
+//                   lightProperty_s[1] * ks * Math.pow(cos2, alpha);
+//        double b = ka * voxel_color.b +
+//                   lightProperty_d[2] * kd * cos1 +
+//                   lightProperty_s[2] * ks * Math.pow(cos2, alpha);
+//
+//        double r = lightProperty_a[0] * ka +
+//                   kd * voxel_color.r * cos1 +
+//                   ks * voxel_color.r * Math.pow(cos2, alpha);
+//        double g = lightProperty_a[1] * ka +
+//                   kd * voxel_color.g * cos1 +
+//                   ks * voxel_color.g * Math.pow(cos2, alpha);
+//        double b = lightProperty_a[2] * ka +
+//                   kd * voxel_color.b * cos1 +
+//                   ks * voxel_color.b * Math.pow(cos2, alpha);
+
         if (r < 0) {
             r = 0;
         }
@@ -859,7 +879,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
             sampleStep = 3;
         } else {
             increment = 1;
-            sampleStep = 2;
+            sampleStep = 1;
         }
 
         // reset the image to black
