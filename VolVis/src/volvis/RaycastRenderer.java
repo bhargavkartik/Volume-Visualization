@@ -964,37 +964,39 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
      * @return
      */
     public double computeOpacity2DTF(double material_value, double material_r,
-            double voxelValue, double gradMagnitude) {
-
+            double voxelValue, double gradMagnitude)
+    {
         double opacity = 0.0;
 
+        // adding the suggestion announced by Humberto
+        double radius = material_r/gradients.getMaxGradientMagnitude();
+
         // TODO 8: Implement weight based opacity.
-        
+
         TFColor baseColor=tFunc2DFront.color;
 
-        // define components to be used
-        // compute the material angle and voxel angle
-        double maxGrad = gradients.getMaxGradientMagnitude();
-        double angle = Math.atan(material_r/maxGrad);
-        double opposite = Math.abs(voxelValue - material_value);
-        double adjacent = gradMagnitude;
-        double voxelAngle = Math.atan(opposite/adjacent);
+        // define the upper and lower threshold bounds for material_value
 
-        // if the material equals the voxel and the gradient is zero, use basic opacity
-        // else if the voxel angle is smaller, use another strategy
+        double lowerThresholdForMaterialValue = voxelValue - radius * gradMagnitude;
+        double upperThresholdForMaterialValue = voxelValue + radius * gradMagnitude;
+
+        // compute the value of opacity differently for 3 different inequalities as mentioned in Levoy's paper
+
         if(material_value == voxelValue && gradMagnitude == 0)
         {
-            opacity=baseColor.a;
+            opacity = 1.0;
         }
-        else if(voxelAngle<angle)
+        else if(gradMagnitude > 0 &&
+		lowerThresholdForMaterialValue <= material_value &&
+		material_value <= upperThresholdForMaterialValue)
         {
-            opacity=baseColor.a*((voxelAngle/angle));
+            opacity = 1 - (1/radius) * Math.abs((voxelValue - material_value)/gradMagnitude);
         }
         else
         {
-            opacity=0.0;
+            opacity = 0.0;
         }
-        
+
         return opacity;
     }
 
