@@ -608,9 +608,10 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         double[] viewVector = new double[3];
         VectorMath.setVector(viewVector, -rayVector[0], -rayVector[1], -rayVector[2]);
 
-        TFColor voxelColor = new TFColor();
-        TFColor currentColor = new TFColor();
-        TFColor colorAux = new TFColor();
+        TFColor voxelColor = new TFColor(); // color before Phong shading
+        TFColor voxelColor1 = new TFColor(); // color after Phong shading
+        TFColor currentColor = new TFColor(); // color from TFunc2D
+        TFColor colorAux = new TFColor(); // accumulated color
         
         // initialize colorAux
         colorAux.r = 0.0;
@@ -662,7 +663,6 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                                                   currTFunc2D.radius,
                                                   voxelValue,
                                                   gradient.mag);
-                
             }
 
             // If Phong Shading enabled
@@ -672,14 +672,20 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                 //calculate the color and opacity after the application of phong shading
                 currentColor = computePhongShading(voxelColor, gradient, lightVector, rayVector);
 
-                //assign the color to our variable newColor
-                voxelColor.r = currentColor.r;
-                voxelColor.g = currentColor.g;
-                voxelColor.b = currentColor.b;
-                voxelColor.a = currentColor.a;
+                //assign the color to our variable voxelColor1
+                voxelColor1.r = currentColor.r;
+                voxelColor1.g = currentColor.g;
+                voxelColor1.b = currentColor.b;
+                voxelColor1.a = currentColor.a;
+            } else {
+                voxelColor1.r = voxelColor.r;
+                voxelColor1.g = voxelColor.g;
+                voxelColor1.b = voxelColor.b;
+                voxelColor1.a = voxelColor.a;
             }
-
-            colorAux = compositingFromBackToFront(colorAux, voxelColor);
+            
+            // compositing iteration, update accumulated color
+            colorAux = compositingFromBackToFront(colorAux, voxelColor1);
 
             for (int i = 0; i < 3; i++)
             {
