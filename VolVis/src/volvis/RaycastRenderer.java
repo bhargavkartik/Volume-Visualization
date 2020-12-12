@@ -440,7 +440,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
 
         double maximum = 0;
         do {
-            double value = getVoxel(currentPos) / 255.;
+            double value = getVoxelTrilinear(currentPos) / 255.;
             if (value > maximum) {
                 maximum = value;
             }
