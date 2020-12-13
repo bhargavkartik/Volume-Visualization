@@ -522,7 +522,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         double[] lightVector = new double[3];
         //We define the light vector as directed toward the view point (which is the source of the light)
         // another light vector would be possible
-        //System.out.println("RayVector" + rayVector[0]+ rayVector[1]+rayVector[2]);
+        
         VectorMath.setVector(lightVector, rayVector[0], rayVector[1], rayVector[2]);
         
         // TODO 3: Implement isosurface rendering.
@@ -540,7 +540,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         double distance = VectorMath.distance(entryPoint, exitPoint);
         int nrSamples = 1 + (int) Math.floor(VectorMath.distance(entryPoint, exitPoint) / sampleStep);
                 
-        //the current position is initialized as the entry point
+        //the current position is the exit point
         double[] currentPos = new double[3];
         VectorMath.setVector(currentPos, exitPoint[0], exitPoint[1], exitPoint[2]);
         
@@ -549,27 +549,32 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         TFColor isoColor = getIsoColor(frontBool);
         
         do {
+			// calling tri-linear interpolation method to get the interpolated voxel
             int value = getVoxelTrilinear(currentPos);
 
-            if (value > isoValue) {    
+            if (value > isoValue) 
+			{    
                 r = isoColor.r;
                 g = isoColor.g;
                 b = isoColor.b;
                 alpha = isoColor.a;
-          
-            if (shadingMode) 
-              {
-                TFColor d = new TFColor(r,g,b,alpha);
-                VoxelGradient gradient = getGradientTrilinear(currentPos);
-                TFColor new_color = computePhongShading(d, gradient, lightVector, rayVector);
-                r = new_color.r;
-                g = new_color.g;
-                b = new_color.b;
-                alpha = new_color.a;
-              }
+			
+				// check if Shading should be applied
+				if (shadingMode) 
+				{
+					TFColor d = new TFColor(r,g,b,alpha);
+					VoxelGradient gradient = getGradientTrilinear(currentPos);
+				
+					TFColor new_color = computePhongShading(d, gradient, lightVector, rayVector);
+					r = new_color.r;
+					g = new_color.g;
+					b = new_color.b;
+					alpha = new_color.a;
+				}
             }
           
-            for (int j = 0; j < 3; j++) {
+            for (int j = 0; j < 3; j++) 
+			{
                 currentPos[j] += increment[j];
             }
            
@@ -580,7 +585,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         //computes the color
         int color = computePackedPixelColor(r, g, b, alpha);
         return color;
-}
+    }
 
     /**
      *
