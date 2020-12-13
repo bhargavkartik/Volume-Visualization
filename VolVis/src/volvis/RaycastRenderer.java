@@ -175,7 +175,8 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
      * @param coord Pixel coordinate in 3D space of the voxel we want to get.
      * @return The voxel value.
      */
-    private short getVoxelTrilinear(double[] coord) {
+    private short getVoxelTrilinear(double[] coord)
+    {
         // TODO 1: Implement Tri-Linear interpolation and use it in your code
         // instead of getVoxel().
         
@@ -214,15 +215,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         double c110 = volume.getVoxel(x1, y1, z0); // [1,1,0]
         double c111 = volume.getVoxel(x1, y1, z1); // [1,1,1]
         
-//        double c0 = (1 - alpha) * volume.getVoxel(x0, y0, z0) + volume.getVoxel(x0 + 1, y0, z0) * alpha;
-//        double c1 = (1 - alpha) * volume.getVoxel(x0, y0 + 1, z0) + volume.getVoxel(x0 + 1, y0 + 1, z0) * alpha;
-//        double c2 = (1 - alpha) * volume.getVoxel(x0, y0, z0 + 1) + volume.getVoxel(x0 + 1, y0, z0 + 1) * alpha;
-//        double c3 = (1 - alpha) * volume.getVoxel(x0, y0+1, z0 + 1) + volume.getVoxel(x0 + 1, y0 + 1, z0 + 1) * alpha;
-//        double c4 = (1 - beta) * c0 + c1 * beta;
-//        double c5 = (1 - beta) * c2 + c3 * beta;
-//        double c6 = (1 - gamma) * c4 + c5 * gamma;
-        
-         // Final computation of Tri-Linear Interpolation
+        // Final computation of Tri-Linear Interpolation
         short interpolated_result = (short) Math.round(
                 (1 - alpha) * (1 - beta) * (1 - gamma) * c000 +
                 alpha * (1 - beta) * (1 - gamma) * c100 +
@@ -233,8 +226,6 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                 (1 - alpha) * beta * gamma * c011 + 
                 alpha * beta * gamma * c111);
 
-        
-        
         return interpolated_result;
     }
 
@@ -522,7 +513,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         double[] lightVector = new double[3];
         //We define the light vector as directed toward the view point (which is the source of the light)
         // another light vector would be possible
-        //System.out.println("RayVector" + rayVector[0]+ rayVector[1]+rayVector[2]);
+        
         VectorMath.setVector(lightVector, rayVector[0], rayVector[1], rayVector[2]);
         
         // TODO 3: Implement isosurface rendering.
@@ -540,7 +531,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         double distance = VectorMath.distance(entryPoint, exitPoint);
         int nrSamples = 1 + (int) Math.floor(VectorMath.distance(entryPoint, exitPoint) / sampleStep);
                 
-        //the current position is initialized as the entry point
+        //the current position is the exit point
         double[] currentPos = new double[3];
         VectorMath.setVector(currentPos, exitPoint[0], exitPoint[1], exitPoint[2]);
         
@@ -549,27 +540,32 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         TFColor isoColor = getIsoColor(frontBool);
         
         do {
+			// calling tri-linear interpolation method to get the interpolated voxel
             int value = getVoxelTrilinear(currentPos);
 
-            if (value > isoValue) {    
+            if (value > isoValue) 
+			{    
                 r = isoColor.r;
                 g = isoColor.g;
                 b = isoColor.b;
                 alpha = isoColor.a;
-          
-            if (shadingMode) 
-              {
-                TFColor d = new TFColor(r,g,b,alpha);
-                VoxelGradient gradient = getGradientTrilinear(currentPos);
-                TFColor new_color = computePhongShading(d, gradient, lightVector, rayVector);
-                r = new_color.r;
-                g = new_color.g;
-                b = new_color.b;
-                alpha = new_color.a;
-              }
+			
+				// check if Shading should be applied
+				if (shadingMode) 
+				{
+					TFColor d = new TFColor(r,g,b,alpha);
+					VoxelGradient gradient = getGradientTrilinear(currentPos);
+				
+					TFColor new_color = computePhongShading(d, gradient, lightVector, rayVector);
+					r = new_color.r;
+					g = new_color.g;
+					b = new_color.b;
+					alpha = new_color.a;
+				}
             }
           
-            for (int j = 0; j < 3; j++) {
+            for (int j = 0; j < 3; j++) 
+			{
                 currentPos[j] += increment[j];
             }
            
@@ -580,7 +576,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         //computes the color
         int color = computePackedPixelColor(r, g, b, alpha);
         return color;
-}
+    }
 
     /**
      *
