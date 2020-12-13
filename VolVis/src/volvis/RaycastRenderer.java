@@ -175,7 +175,8 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
      * @param coord Pixel coordinate in 3D space of the voxel we want to get.
      * @return The voxel value.
      */
-    private short getVoxelTrilinear(double[] coord) {
+    private short getVoxelTrilinear(double[] coord)
+    {
         // TODO 1: Implement Tri-Linear interpolation and use it in your code
         // instead of getVoxel().
         
@@ -214,15 +215,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         double c110 = volume.getVoxel(x1, y1, z0); // [1,1,0]
         double c111 = volume.getVoxel(x1, y1, z1); // [1,1,1]
         
-//        double c0 = (1 - alpha) * volume.getVoxel(x0, y0, z0) + volume.getVoxel(x0 + 1, y0, z0) * alpha;
-//        double c1 = (1 - alpha) * volume.getVoxel(x0, y0 + 1, z0) + volume.getVoxel(x0 + 1, y0 + 1, z0) * alpha;
-//        double c2 = (1 - alpha) * volume.getVoxel(x0, y0, z0 + 1) + volume.getVoxel(x0 + 1, y0, z0 + 1) * alpha;
-//        double c3 = (1 - alpha) * volume.getVoxel(x0, y0+1, z0 + 1) + volume.getVoxel(x0 + 1, y0 + 1, z0 + 1) * alpha;
-//        double c4 = (1 - beta) * c0 + c1 * beta;
-//        double c5 = (1 - beta) * c2 + c3 * beta;
-//        double c6 = (1 - gamma) * c4 + c5 * gamma;
-        
-         // Final computation of Tri-Linear Interpolation
+        // Final computation of Tri-Linear Interpolation
         short interpolated_result = (short) Math.round(
                 (1 - alpha) * (1 - beta) * (1 - gamma) * c000 +
                 alpha * (1 - beta) * (1 - gamma) * c100 +
@@ -233,8 +226,6 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                 (1 - alpha) * beta * gamma * c011 + 
                 alpha * beta * gamma * c111);
 
-        
-        
         return interpolated_result;
     }
 
