@@ -786,15 +786,15 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         double[] R = {x_gradVec[0] - lightNormVector[0], x_gradVec[1] - lightNormVector[1], x_gradVec[2] - lightNormVector[2]};
         double cos2 = VectorMath.dotproduct(rayNormVector, R) > 0 ? VectorMath.dotproduct(rayNormVector, R): 0;
 
-        double r = lightProperty_a[0] * ka * voxel_color.r +
-                   lightProperty_d[0] * kd * voxel_color.r * cos1 +
-                   lightProperty_s[0] * ks * voxel_color.r * Math.pow(cos2, alpha);
-        double g = lightProperty_a[1] * ka * voxel_color.g +
-                   lightProperty_d[1] * kd * voxel_color.g * cos1 +
-                   lightProperty_s[1] * ks * voxel_color.g * Math.pow(cos2, alpha);
-        double b = lightProperty_a[2] * ka * voxel_color.b +
-                   lightProperty_d[2] * kd * voxel_color.b * cos1 +
-                   lightProperty_s[2] * ks * voxel_color.b * Math.pow(cos2, alpha);
+        double r = ka * voxel_color.r +
+                   kd * voxel_color.r * cos1 +
+                   lightProperty_s[0] * ks * Math.pow(cos2, alpha);
+        double g = ka * voxel_color.g +
+                   kd * voxel_color.g * cos1 +
+                   lightProperty_s[1] * ks * Math.pow(cos2, alpha);
+        double b = ka * voxel_color.b +
+                   kd * voxel_color.b * cos1 +
+                   lightProperty_s[2] * ks * Math.pow(cos2, alpha);
         
         // r, g, b should be between 0.0 to 1.0
         if (r < 0) { r = 0; }
@@ -889,9 +889,9 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                     double dot = util.VectorMath.dotproduct(util.VectorMath.difference(entryPoint, planePoint, diffVec), planeNorm);
  
                     if (dot >= 0) {
-                        frontBool = false;
-                    } else {
                         frontBool = true;
+                    } else {
+                        frontBool = false;
                     }
                 }
                 RaycastMode currMode = getMode(frontBool);

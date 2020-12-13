@@ -10,7 +10,7 @@ import volume.VoxelGradient;
 
 /**
  *
- * @author Administrator
+ * @author Kartik B Bhargav, Stepan Veretennikov, Aniket Ninawe
  */
 public class FunctionsImplemented
 {
@@ -184,16 +184,6 @@ public class FunctionsImplemented
 
         return compositedColor;
    }
-   
-    private TFColor compositingFromBackToFront1(TFColor compositedColor, TFColor currentColor, double alpha)
-    {
-        compositedColor.r = currentColor.r * alpha + (1.0 - alpha) * compositedColor.r;
-        compositedColor.g = currentColor.g * alpha + (1.0 - alpha) * compositedColor.g;
-        compositedColor.b = currentColor.b * alpha + (1.0 - alpha) * compositedColor.b;
-        compositedColor.a = alpha + (1.0 - alpha) * compositedColor.a;
-        
-        return compositedColor;
-   }
     
     
     // TODO 3:
@@ -292,11 +282,7 @@ public class FunctionsImplemented
             }
         }
      
-     }
-    
-    // TODO 5:
-    
-    
+    }
     
     // TODO 6:
     private VoxelGradient getGradientTrilinear(double[] coord) 
@@ -394,61 +380,49 @@ public class FunctionsImplemented
 
         TFColor color;
 
-        //fish doesn't exist
-        //if (gradient.x == 0 && gradient.y == 0 && gradient.z == 0) return voxel_color;
+        // if (gradient.x == 0 && gradient.y == 0 && gradient.z == 0) return voxel_color;
         if(gradient.mag == 0)   return voxel_color;
 
-        //norm gradiente
+        // norm gradiente
         double[] gradVec = {gradient.x / gradient.mag, gradient.y / gradient.mag, gradient.z / gradient.mag};
 
-        //norm light
+        // norm light
         double lightNorm = VectorMath.length(lightVector);  //Math.sqrt(Math.pow(lightVector[0], 2) + Math.pow(lightVector[1], 2) + Math.pow(lightVector[2], 2));
         if(lightNorm == 0) return voxel_color;
         double[] lightNormVector = {lightVector[0] / lightNorm, lightVector[1] / lightNorm, lightVector[2] / lightNorm};
 
-        //norm ray
+        // norm ray
         double rayNorm = VectorMath.length(rayVector);  //Math.sqrt(Math.pow(rayVector[0], 2) + Math.pow(rayVector[1], 2) + Math.pow(rayVector[2], 2));
         if(rayNorm == 0) return voxel_color;
         double[] rayNormVector = {rayVector[0] / rayNorm, rayVector[1] / rayNorm, rayVector[2] / rayNorm};
 
-        //cos 1
+        // cos 1
         double cos1 = VectorMath.dotproduct(lightNormVector, gradVec) > 0 ? VectorMath.dotproduct(lightNormVector, gradVec) : 0;
 
-        //R
+        // R
         double[] twice_gradVec = {gradVec[0] * 2, gradVec[1] * 2, gradVec[2] * 2};
         double x = VectorMath.dotproduct(twice_gradVec, lightNormVector);
         double[] x_gradVec = {gradVec[0] * x, gradVec[1] * x, gradVec[2] * x};
         double[] R = {x_gradVec[0] - lightNormVector[0], x_gradVec[1] - lightNormVector[1], x_gradVec[2] - lightNormVector[2]};
         double cos2 = VectorMath.dotproduct(rayNormVector, R) > 0 ? VectorMath.dotproduct(rayNormVector, R): 0;
 
-        double r = lightProperty_a[0] * ka * voxel_color.r +
-                   lightProperty_d[0] * kd * voxel_color.r * cos1 +
-                   lightProperty_s[0] * ks * voxel_color.r * Math.pow(cos2, alpha);
-        double g = lightProperty_a[1] * ka * voxel_color.g +
-                   lightProperty_d[1] * kd * voxel_color.g * cos1 +
-                   lightProperty_s[1] * ks * voxel_color.g * Math.pow(cos2, alpha);
-        double b = lightProperty_a[2] * ka * voxel_color.b +
-                   lightProperty_d[2] * kd * voxel_color.b * cos1 +
-                   lightProperty_s[2] * ks * voxel_color.b * Math.pow(cos2, alpha);
-
-        if (r < 0) {
-            r = 0;
-        }
-        if (g < 0) {
-            g = 0;
-        }
-        if (b < 0) {
-            b = 0;
-        }
-        if (r > 1) {
-            r = 1;
-        }
-        if (g > 1) {
-            g = 1;
-        }
-        if (b > 1) {
-            b = 1;
-        }
+        double r = ka * voxel_color.r +
+                   kd * voxel_color.r * cos1 +
+                   lightProperty_s[0] * ks * Math.pow(cos2, alpha);
+        double g = ka * voxel_color.g +
+                   kd * voxel_color.g * cos1 +
+                   lightProperty_s[1] * ks * Math.pow(cos2, alpha);
+        double b = ka * voxel_color.b +
+                   kd * voxel_color.b * cos1 +
+                   lightProperty_s[2] * ks * Math.pow(cos2, alpha);
+        
+        // r, g, b should be between 0.0 to 1.0
+        if (r < 0) { r = 0; }
+        if (g < 0) { g = 0; }
+        if (b < 0) { b = 0; }
+        if (r > 1) { r = 1; }
+        if (g > 1) { g = 1; }
+        if (b > 1) { b = 1; }
 
         color = new TFColor(r, g, b, voxel_color.a);
         return color;
@@ -491,7 +465,153 @@ public class FunctionsImplemented
         return opacity;
     }
     
-    // TODO 9:
+    // TODO 5 and 9:
+    void raycast(double[] viewMatrix)
+    {
+        //data allocation
+        double[] viewVec = new double[3];
+        double[] uVec = new double[3];
+        double[] vVec = new double[3];
+        double[] pixelCoord = new double[3];
+        double[] entryPoint = new double[3];
+        double[] exitPoint = new double[3];
+
+        // TODO 5: Limited modification is needed
+        // increment in the pixel domain in pixel units
+        int increment;
+        // sample step in voxel units
+        int sampleStep;
+
+        //System.out.println(interactiveMode);
+        if (interactiveMode) {
+            increment = 2;
+            sampleStep = 3;
+        } else {
+            increment = 1;
+            sampleStep = 1;
+        }
+
+        // reset the image to black
+        resetImage();
+
+        // vector uVec and vVec define a plane through the origin,
+        // perpendicular to the view vector viewVec which is going from the view point towards the object
+        // uVec contains the up vector of the camera in world coordinates (image vertical)
+        // vVec contains the horizontal vector in world coordinates (image horizontal)
+        VectorMath.setVector(viewVec, viewMatrix[2], viewMatrix[6], viewMatrix[10]);
+        VectorMath.setVector(uVec, viewMatrix[0], viewMatrix[4], viewMatrix[8]);
+        VectorMath.setVector(vVec, viewMatrix[1], viewMatrix[5], viewMatrix[9]);
+
+        // We get the size of the image/texture we will be puting the result of the 
+        // volume rendering operation.
+        int imageW = image.getWidth();
+        int imageH = image.getHeight();
+
+        int[] imageCenter = new int[2];
+        // Center of the image/texture 
+        imageCenter[0] = imageW / 2;
+        imageCenter[1] = imageH / 2;
+
+        //The rayVector is pointing towards the scene
+        double[] rayVector = new double[3];
+        rayVector[0] = -viewVec[0];
+        rayVector[1] = -viewVec[1];
+        rayVector[2] = -viewVec[2];
+
+        // compute the volume center
+        double[] volumeCenter = new double[3];
+        VectorMath.setVector(volumeCenter, volume.getDimX() / 2, volume.getDimY() / 2, volume.getDimZ() / 2);
+        
+        // Vector from entru poin to the planePoint
+        double[] diffVec = new double[3];
+        
+        // Whether the ray is for upper half-plane
+        boolean frontBool = true;
+
+        // ray computation for each pixel
+        for (int j = imageCenter[1] - imageH / 2; j < imageCenter[1] + imageH / 2; j += increment) {
+            for (int i = imageCenter[0] - imageW / 2; i < imageCenter[0] + imageW / 2; i += increment) {
+                // compute starting points of rays in a plane shifted backwards to a position behind the data set
+                computePixelCoordinatesBehindFloat(pixelCoord, viewVec, uVec, vVec, i, j);
+                // compute the entry and exit point of the ray
+                computeEntryAndExit(pixelCoord, rayVector, entryPoint, exitPoint);
+
+                // TODO 9: Implement logic for cutting plane.
+                if (this.isCuttingPlaneMode()) {
+                    double dot = util.VectorMath.dotproduct(util.VectorMath.difference(entryPoint, planePoint, diffVec), planeNorm);
+ 
+                    if (dot >= 0) {
+                        frontBool = true;
+                    } else {
+                        frontBool = false;
+                    }
+                }
+                RaycastMode currMode = getMode(frontBool);
+
+                if ((entryPoint[0] > -1.0) && (exitPoint[0] > -1.0)) {
+                    int val = 0;
+                    switch (currMode) {
+                        case COMPOSITING:
+                        case TRANSFER2D:
+                            val = traceRayComposite(entryPoint, exitPoint, rayVector, sampleStep, frontBool);
+                            break;
+                        case MIP:
+                            val = traceRayMIP(entryPoint, exitPoint, rayVector, sampleStep);
+                            break;
+                        case ISO_SURFACE:
+                            val = traceRayIso(entryPoint, exitPoint, rayVector, sampleStep, frontBool);
+                            break;
+                    }
+                    for (int ii = i; ii < i + increment; ii++) {
+                        for (int jj = j; jj < j + increment; jj++) {
+                            image.setRGB(ii, jj, val);
+                        }
+                    }
+                }
+
+            }
+        }
+    }
     
+    // Utility functions for cutting plane
+    public TFColor getIsoColor(boolean frontBool) {
+        if (frontBool) {
+            return isoColorFront;
+        } else {
+            return isoColorBack;
+        }
+    }
+
+    public float getIsoValue(boolean frontBool) {
+        if (frontBool) {
+            return isoValueFront;
+        } else {
+            return isoValueBack;
+        }
+    }
+
+    public RaycastMode getMode(boolean frontBool) {
+        if (frontBool) {
+            return modeFront;
+        } else {
+            return modeBack;
+        }
+    }
+
+    public TransferFunction getTFunc(boolean frontBool) {
+        if (frontBool) {
+            return tFuncFront;
+        } else {
+            return tFuncBack;
+        }
+    }
+
+    public TransferFunction2D getTFunc2D(boolean frontBool) {
+        if (frontBool) {
+            return tFunc2DFront;
+        } else {
+            return tFunc2DBack;
+        }
+    }
     
 }
