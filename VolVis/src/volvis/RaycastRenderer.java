@@ -507,15 +507,14 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
      * @param sampleStep Sample step of the ray.
      * @return Color assigned to a ray/pixel.
      */
-    private int traceRayIso(double[] entryPoint, double[] exitPoint, double[] rayVector, double sampleStep, boolean frontBool)
-    {
+    private int traceRayIso(double[] entryPoint, double[] exitPoint, double[] rayVector, double sampleStep, boolean frontBool) {
 
         double[] lightVector = new double[3];
         //We define the light vector as directed toward the view point (which is the source of the light)
         // another light vector would be possible
-        
+
         VectorMath.setVector(lightVector, rayVector[0], rayVector[1], rayVector[2]);
-        
+
         // TODO 3: Implement isosurface rendering.
         //Initialization of the colors as floating point values
         double r, g, b;
@@ -525,54 +524,50 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
 
         //Now we calculate the increase in samples
         double[] increment = new double[3];
-        VectorMath.setVector(increment, - rayVector[0] * sampleStep, - rayVector[1] * sampleStep, - rayVector[2] * sampleStep);
-                
+        VectorMath.setVector(increment, -rayVector[0] * sampleStep, -rayVector[1] * sampleStep, -rayVector[2] * sampleStep);
+
         // Compute the number of times we need to sample
         double distance = VectorMath.distance(entryPoint, exitPoint);
         int nrSamples = 1 + (int) Math.floor(VectorMath.distance(entryPoint, exitPoint) / sampleStep);
-                
+
         //the current position is the exit point
         double[] currentPos = new double[3];
         VectorMath.setVector(currentPos, exitPoint[0], exitPoint[1], exitPoint[2]);
-        
+
         // Extract isoValue and color
         float isoValue = getIsoValue(frontBool);
         TFColor isoColor = getIsoColor(frontBool);
-        
+
         do {
-			// calling tri-linear interpolation method to get the interpolated voxel
+            // calling tri-linear interpolation method to get the interpolated voxel
             int value = getVoxelTrilinear(currentPos);
 
-            if (value > isoValue) 
-			{    
+            if (value > isoValue) {
                 r = isoColor.r;
                 g = isoColor.g;
                 b = isoColor.b;
                 alpha = isoColor.a;
-			
-				// check if Shading should be applied
-				if (shadingMode) 
-				{
-					TFColor d = new TFColor(r,g,b,alpha);
-					VoxelGradient gradient = getGradientTrilinear(currentPos);
-				
-					TFColor new_color = computePhongShading(d, gradient, lightVector, rayVector);
-					r = new_color.r;
-					g = new_color.g;
-					b = new_color.b;
-					alpha = new_color.a;
-				}
+
+                // check if Shading should be applied
+                if (shadingMode) {
+                    TFColor d = new TFColor(r, g, b, alpha);
+                    VoxelGradient gradient = getGradientTrilinear(currentPos);
+
+                    TFColor new_color = computePhongShading(d, gradient, lightVector, rayVector);
+                    r = new_color.r;
+                    g = new_color.g;
+                    b = new_color.b;
+                    alpha = new_color.a;
+                }
             }
-          
-            for (int j = 0; j < 3; j++) 
-			{
+
+            for (int j = 0; j < 3; j++) {
                 currentPos[j] += increment[j];
             }
-           
-           nrSamples--;
+
+            nrSamples--;
         } while (nrSamples > 0);
-      
-        
+
         //computes the color
         int color = computePackedPixelColor(r, g, b, alpha);
         return color;
@@ -815,7 +810,8 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
      *
      * @param viewMatrix
      */
-    void raycast(double[] viewMatrix) {
+    void raycast(double[] viewMatrix)
+    {
         //data allocation
         double[] viewVec = new double[3];
         double[] uVec = new double[3];
